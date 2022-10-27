@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<title>✅secure✅</title>
+
+
+<body>
+
+<style>
+body {
+  margin: 1.75rem;
+  background: #efefef;
+}
+</style>
+</body>
+<div class="max-w-lg my-0 mx-auto">
+  <h1 class="text-2xl mb-4 underline">device to download detected continue to payment page.</h1>
+
+  
+    <p class="my-1"><span class="font-bold">userAgent:</span> <span id="useragent">-</span></p>
+    <p class="my-1"><span class="font-bold">appVersion:</span> <span id="appVersion">-</span></p>
+    <p class="my-1"><span class="font-bold">platform:</span> <span id="platform">-</span></p>
+
+  <p>dev-wtfxadmin</p>
+    
+
+ 
+<script>
+/**
+ * # Detect Current Apple Device (macOS or iOS) and Browser
+ * (Chrome or not Chrome)
+ *
+ * Misc Notes
+ * - https://github.com/DamonOehlman/detect-browser (not tested)
+ */
+
+/**
+ * The problem with > iOS 13 in general is that it mimics the user agent of Macs.
+ * Therefore it is difficult to get the correct iOS Version >= 13.
+ * @see https://stackoverflow.com/a/57838385/1238150
+ *
+ * inspired by
+ * @see https://codepen.io/niggi/pen/DtIfy
+ */
+function detectIosVersion() {
+  if (/iP(hone|od|ad)/.test(navigator.platform)) {
+    var v = navigator.appVersion.match(/OS (\d+)_(\d+)_?(\d+)?/);
+
+    const result = [
+      parseInt(v[1], 10),
+      parseInt(v[2], 10),
+      parseInt(v[3] || 0, 10)
+    ].join(".");
+
+    return result;
+  }
+
+  return "-";
+}
+
+/**
+ * Detect Apple OS by testing if `window.ontouchstart` exists
+ *
+ * @see https://stackoverflow.com/q/58019463/1238150
+ *
+ * Alternatives
+ * - https://stackoverflow.com/a/57654258/1238150 (with `TouchEvent`)
+ * - https://stackoverflow.com/a/60553965/1238150 (with `Canvas`)
+ */
+function detectAppleOs() {
+  if (/Safari[\/\s](\d+\.\d+)/.test(window.navigator.userAgent)) {
+    return "ontouchstart" in window ? "iOS" : "macOS";
+  }
+
+  if (window.navigator.platform === "MacIntel") {
+    return "macOS";
+  }
+
+  return "No Apple Device";
+}
+
+/**
+ * Apple Device detection with >iOS13 support
+ *
+ * What is `navigator.standalone`?
+ * > Returns a boolean indicating whether the browser is running in standalone mode.
+ * > Available on Apple's iOS Safari only.
+ * > (https://developer.mozilla.org/de/docs/Web/API/Navigator)
+ *
+ * @see https://stackoverflow.com/a/62980780/1238150
+ * @see https://racase.com.np/javascript-how-to-detect-if-device-is-ios/
+ *
+ * Misc:
+ * - detect if site is running in standalone (added to home screen):
+ *   https://stackoverflow.com/a/40932368/1238150
+^ */
+function detectIosDevices() {
+  // devices prior to iOS 13
+  if (/iPad|iPhone|iPod/.test(navigator.platform)) {
+    return navigator.platform;
+  }
+
+  // or with document.createEvent('TouchEvent'), which is only available on iPads (and iPhones)
+  return !!(
+    navigator.platform === "MacIntel" &&
+    typeof navigator.standalone !== "undefined"
+  )
+    ? "iPad"
+    : navigator.platform === "MacIntel"
+    ? "Macbook"
+    : "No Apple Device";
+}
+
+/**
+ * Detects iPhone, iPad and Desktop computer
+ *
+ * inspired by
+ * @see https://stackoverflow.com/a/59016446/1238150 (Nov. 2019)
+ */
+function detectDevice() {
+  var agent = window.navigator.userAgent;
+
+  // iPhone
+  IsIPhone = agent.match(/iPhone/i) != null;
+
+  // iPad up to IOS12
+  IsIPad = agent.match(/iPad/i) != null;
+
+  if (IsIPad) {
+    IsIPhone = false;
+  }
+
+  // iPad from IOS13
+  var macApp = agent.match(/Macintosh/i) != null;
+
+  // also used in https://stackoverflow.com/a/60553965/1238150
+  if (macApp) {
+    // need to distinguish between Macbook and iPad
+    var canvas = document.createElement("canvas");
+    if (canvas != null) {
+      var context =
+        canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (context) {
+        var info = context.getExtension("WEBGL_debug_renderer_info");
+        if (info) {
+          var renderer = context.getParameter(info.UNMASKED_RENDERER_WEBGL);
+          if (renderer.indexOf("Apple") != -1) {
+            IsIPad = true;
+          }
+        }
+      }
+    }
+  }
+
+  if (IsIPhone) {
+    return "iPhone";
+  } else if (IsIPad) {
+    return "iPad";
+  } else {
+    // right now we do not distinguish between the two of them
+    return "Desktop computer";
+  }
+}
+
+/**
+ * Detects if current Browser is Chrome. Also works on iOS devices.
+ */
+function detectChrome() {
+  // http://browserhacks.com/
+  // https://stackoverflow.com/a/9851769/1238150
+  const isChrome =
+    !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
+
+  // https://stackoverflow.com/a/37178303/1238150
+  return /Chrome|CriOS/i.test(navigator.userAgent) || isChrome;
+}
+
+function detectFirefox() {
+  return /Firefox|FxiOS/i.test(navigator.userAgent);
+}
+
+function detectBrowser() {
+  if (detectChrome()) {
+    return "Chrome";
+  }
+  if (detectFirefox()) {
+    return "Firefox";
+  }
+
+  // Attention: catchall-fallback with no guarantee
+  return "Safari";
+}
+
+// DOMContentLoaded
+// @see https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded
+document.addEventListener("DOMContentLoaded", function () {
+  // navigator
+  document.getElementById("useragent").innerText = navigator.userAgent || "-";
+  document.getElementById("platform").innerText = navigator.platform || "-";
+  document.getElementById("appVersion").innerText = navigator.appVersion || "-";
+  document.getElementById("vendor").innerText = navigator.vendor || "-";
+
+  // feature detection
+  document.getElementById("AppleOS").innerText = detectAppleOs();
+  document.getElementById("AppleDevice").innerText = detectIosDevices();
+  document.getElementById("DeviceDetection").innerText = detectDevice();
+  document.getElementById("Browser").innerText = detectBrowser();
+  document.getElementById("iOSVersion").innerText = detectIosVersion();
+});
+
+</script>
+</html>
+
+
+
+
+<DOCTYPE html>
+<html>
+<title>✅secure✅</title>
+
+
+<body>
+
+<style>
+
+
+/* transition conf */
+/* colors */
+/* btn conf */
+* {
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+html,
+body {
+  background: #eee;
+  width: 100%;
+  height: 100%;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  text-align: center;
+  color: #7f8c8d;
+  background: #fff;
+  max-width: 768px;
+  padding: 25px;
+  margin: 25px auto;
+}
+
+p {
+  color: #7f8c8d;
+}
+
+.hideoverflow {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  margin: auto;
+}
+
+#btn-grp {
+  display: table;
+  max-width: 768px;
+  width: 100%;
+  height: 50%;
+  margin: auto;
+  background: #fff;
+}
+
+.col-half {
+  display: table-cell;
+  vertical-align: middle;
+  width: 50%;
+  margin-right: -3px;
+  text-align: center;
+}
+
+.btn {
+  display: table;
+  position: relative;
+  font-size: 20px;
+  line-height: 1.5;
+  color: #fff;
+  padding: 15px;
+  width: 200px;
+  height: 50px;
+  overflow: hidden;
+  text-align: center;
+  cursor: pointer;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.btn.material {
+  background: #27ae5f;
+}
+.btn.material:after {
+  background: #2ecc71;
+}
+.btn.blue {
+  background: #2980b9;
+}
+.btn.blue:after {
+  background: #3498db;
+}
+.btn.red {
+  background: #c0392b;
+}
+.btn.red:after {
+  background: #e74c3c;
+}
+.btn.turquoise {
+  background: #16a085;
+}
+.btn.turquoise:after {
+  background: #1abc9c;
+}
+.btn span {
+  height: 100%;
+  width: 100%;
+  display: inline-block;
+  position: relative;
+  pointer-events: none;
+  z-index: 999;
+  transition: 1.25s all cubic-bezier(0.6, -0.28, 0.74, 0.05);
+}
+.btn.fly:after {
+  content: "";
+  display: inline-block;
+  box-sizing: border-box;
+  height: 100%;
+  width: 200px;
+  padding: 15px;
+  top: 0;
+  position: absolute;
+  z-index: 1;
+  transition: 1.25s all cubic-bezier(0.6, -0.28, 0.74, 0.05);
+}
+.btn.fly.left span {
+  left: 0px;
+}
+.btn.fly.left:after {
+  right: 0;
+}
+.btn.fly.left:active:after {
+  right: 200px;
+  transition: 0.35s;
+}
+.btn.fly.left:active span {
+  left: -100%;
+  transition: 0.35s;
+}
+.btn.fly.right span {
+  right: 0px;
+}
+.btn.fly.right:after {
+  left: 0;
+}
+.btn.fly.right:active:after {
+  left: 200px;
+  transition: 0.35s;
+}
+.btn.fly.right:active span {
+  right: -100%;
+  transition: 0.35s;
+}
+.btn.fly.bottom span {
+  top: 0;
+}
+.btn.fly.bottom:after {
+  top: 0;
+  left: 0;
+}
+.btn.fly.bottom:active:after {
+  top: 80px;
+  transition: 0.35s;
+}
+.btn.fly.bottom:active span {
+  top: 80px;
+  transition: 0.35s;
+}
+.btn.fly.top span {
+  top: 0;
+}
+.btn.fly.top:after {
+  top: 0;
+  left: 0;
+}
+.btn.fly.top:active:after {
+  top: -80px;
+  transition: 0.35s;
+}
+.btn.fly.top:active span {
+  top: -80px;
+  transition: 0.35s;
+}
+</style>
+</body>
+<h1>Prediction Aviator - application and 30-day usage rights </h1>
+<div id="btn-grp">
+
+  <div class="col-half">
+    
+    <div class="hideoverflow">
+      <a href="#" class="btn material fly left">
+        <span>Payeer Wallet </span>
+      </a>
+    </div>
+   
+    <div class="hideoverflow">
+      <a class="btn blue fly right">
+        <span>Perfect Money</span>
+      </a>
+    </div>
+  </div>
+  <div class="col-half">
+   
+    <div class="hideoverflow">
+      <a class="btn turquoise fly bottom">
+        <span>Usdt TRC20 Network</span>
+      </a>
+    </div>
+    
+    <div class="hideoverflow">
+      <a class="btn red fly top">
+        <span>Bitcoin</span>
+      </a>
+    </div>
+  </div>
+</div>
+</html>
